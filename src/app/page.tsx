@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ShoppingCart, Printer, Sparkles } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';  // Import the client-side Stripe type here
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -31,21 +31,26 @@ export default function Home() {
   }
 
   async function checkout() {
-  const stripe = await stripePromise;
-  if (!stripe) return;  // Add safety check
+    const stripe = await stripePromise as Stripe | null;  // Explicitly type as client-side Stripe
+    if (!stripe) {
+      console.error('Stripe failed to load');
+      return;
+    }
 
-  const response = await fetch('/api/checkout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items: cart }),
-  });
-  const session = await response.json();
+    const response = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: cart }),
+    });
 
-  // Explicitly handle the result to avoid void issues
-  const result = await stripe.redirectToCheckout({ sessionId: session.id });
-  if (result.error) {
-    console.error(result.error);
-    // Optionally show error to user
+    const session = await response.json();
+
+    const result = await stripe.redirectToCheckout({ sessionId: session.id });
+
+    if (result.error) {
+      console.error('Stripe redirect error:', result.error.message);
+      // You can add user-facing error handling here later
+    }
   }
 
   return (
@@ -58,7 +63,11 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <button className="relative">
               <ShoppingCart className="w-8 h-8" />
-              {cart.length > 0 && <span className="absolute -top-2 -right-2 bg-yellow-400 text-black rounded-full px-2 text-sm">{cart.length}</span>}
+              {cart.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-yellow-400 text-black rounded-full px-2 text-sm">
+                  {cart.length}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -66,23 +75,35 @@ export default function Home() {
 
       <section className="bg-gray-100 py-20 text-center">
         <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-bold mb-6">Bring Your Ideas to Life in 3D! <Sparkles className="inline w-12 h-12 text-yellow-400" /></h2>
+          <h2 className="text-5xl font-bold mb-6">
+            Bring Your Ideas to Life in 3D! <Sparkles className="inline w-12 h-12 text-yellow-400" />
+          </h2>
           <p className="text-xl mb-8">Custom 3D printing services & unique creations by Sebastian</p>
-          {/* Placeholder hero images here in real code */}
+          {/* Placeholder hero images can be added here later */}
         </div>
       </section>
 
       <section className="py-16 container mx-auto px-4">
         <h2 className="text-4xl font-bold text-center mb-12">Featured Creations</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {products.map(product => (
-            <div key={product.id} className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer" onClick={() => setSelected(product)}>
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer"
+              onClick={() => setSelected(product)}
+            >
               <img src={product.image_url} alt={product.name} className="w-full h-64 object-cover" />
               <div className="p-6">
                 <h3 className="text-2xl font-semibold">{product.name}</h3>
                 <p className="text-gray-600 mt-2">{product.description}</p>
                 <p className="text-3xl font-bold mt-4">${product.price}</p>
-                <button onClick={(e) => { e.stopPropagation(); setCart([...cart, product]); }} className="mt-4 bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCart([...cart, product]);
+                  }}
+                  className="mt-4 bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700"
+                >
                   Add to Cart
                 </button>
               </div>
@@ -95,7 +116,10 @@ export default function Home() {
         <div className="fixed bottom-4 right-4 bg-white shadow-2xl p-6 rounded-lg">
           <h3 className="text-2xl font-bold">Cart ({cart.length})</h3>
           <p>Total: ${cart.reduce((sum, item) => sum + item.price, 0)}</p>
-          <button onClick={checkout} className="mt-4 bg-green-600 text-white px-8 py-4 rounded text-xl hover:bg-green-700">
+          <button
+            onClick={checkout}
+            className="mt-4 bg-green-600 text-white px-8 py-4 rounded text-xl hover:bg-green-700"
+          >
             Checkout with Stripe
           </button>
         </div>
@@ -103,7 +127,7 @@ export default function Home() {
 
       <footer className="bg-gray-900 text-white py-8 text-center">
         <p>Secure payments powered by Stripe</p>
-        {/* Payment logos here */}
+        {/* Visa/Mastercard logos can be added here */}
         <p className="mt-4">© 2025 SebPrints Galaxy - All rights reserved</p>
       </footer>
     </>
