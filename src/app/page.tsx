@@ -31,14 +31,21 @@ export default function Home() {
   }
 
   async function checkout() {
-    const stripe = await stripePromise;
-    const response = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: cart }),
-    });
-    const session = await response.json();
-    stripe?.redirectToCheckout({ sessionId: session.id });
+  const stripe = await stripePromise;
+  if (!stripe) return;  // Add safety check
+
+  const response = await fetch('/api/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items: cart }),
+  });
+  const session = await response.json();
+
+  // Explicitly handle the result to avoid void issues
+  const result = await stripe.redirectToCheckout({ sessionId: session.id });
+  if (result.error) {
+    console.error(result.error);
+    // Optionally show error to user
   }
 
   return (
