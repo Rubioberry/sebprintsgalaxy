@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { ShoppingCart, Printer, Sparkles } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import { loadStripe, Stripe } from '@stripe/stripe-js';  // Import the client-side Stripe type here
+import type { Stripe } from '@stripe/stripe-js';  // Import the TYPE ONLY from client package
+import { loadStripe } from '@stripe/stripe-js';
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -31,9 +32,10 @@ export default function Home() {
   }
 
   async function checkout() {
-    const stripe = await stripePromise as Stripe | null;  // Explicitly type as client-side Stripe
+    const stripe = await stripePromise as Stripe | null;
+
     if (!stripe) {
-      console.error('Stripe failed to load');
+      console.error('Stripe.js failed to load');
       return;
     }
 
@@ -48,8 +50,8 @@ export default function Home() {
     const result = await stripe.redirectToCheckout({ sessionId: session.id });
 
     if (result.error) {
-      console.error('Stripe redirect error:', result.error.message);
-      // You can add user-facing error handling here later
+      console.error('Stripe checkout error:', result.error.message);
+      // You can show a toast/alert to the user here later
     }
   }
 
@@ -79,7 +81,6 @@ export default function Home() {
             Bring Your Ideas to Life in 3D! <Sparkles className="inline w-12 h-12 text-yellow-400" />
           </h2>
           <p className="text-xl mb-8">Custom 3D printing services & unique creations by Sebastian</p>
-          {/* Placeholder hero images can be added here later */}
         </div>
       </section>
 
@@ -127,7 +128,6 @@ export default function Home() {
 
       <footer className="bg-gray-900 text-white py-8 text-center">
         <p>Secure payments powered by Stripe</p>
-        {/* Visa/Mastercard logos can be added here */}
         <p className="mt-4">© 2025 SebPrints Galaxy - All rights reserved</p>
       </footer>
     </>
