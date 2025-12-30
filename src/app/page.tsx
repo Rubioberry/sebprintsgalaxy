@@ -71,23 +71,25 @@ export default function Home() {
       {/* Dark overlay for text readability */}
       <div className="fixed inset-0 bg-black/60 z-10"></div>
 
-      {/* Header with looping banner video instead of text title */}
+      {/* Header with centered banner video */}
       <header className="relative z-20 py-6 md:py-8">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          {/* Header banner video replaces title text */}
-          <div className="w-64 md:w-96">
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="w-full h-auto rounded-lg shadow-2xl shadow-purple-500/50"
-            >
-              <source src="/videos/header-banner.mp4" type="video/mp4" />
-            </video>
+        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-center md:justify-between items-center gap-8">
+          {/* Centered header banner video (main focus) */}
+          <div className="flex justify-center w-full md:w-auto">
+            <div className="w-72 md:w-96 lg:w-[480px]">
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-auto rounded-lg shadow-2xl shadow-purple-500/50"
+              >
+                <source src="/videos/header-banner.mp4" type="video/mp4" />
+              </video>
+            </div>
           </div>
 
-          {/* Cart button */}
+          {/* Cart button (top-right on desktop, below on mobile) */}
           <button className="relative p-4 rounded-full bg-cyan-500/20 backdrop-blur-md border border-cyan-400 shadow-lg shadow-cyan-400/50 hover:shadow-cyan-400/80 transition">
             <ShoppingCart className="w-10 h-10 text-cyan-300" />
             {cart.length > 0 && (
