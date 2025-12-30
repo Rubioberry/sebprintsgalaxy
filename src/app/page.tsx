@@ -3,16 +3,15 @@
 import { useState, useEffect } from 'react';
 import { ShoppingCart, Printer, Sparkles } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import type { Stripe } from '@stripe/stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import type { Stripe } from '@stripe/stripe-js';  // This line fixes the type error permanently
 
-// Safely create Supabase client – fallback if env vars missing (for local testing)
+// Safe Supabase client creation
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseAnonKey 
+const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;  // null = no database calls, but app won't crash
+  : null;
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -34,8 +33,6 @@ export default function Home() {
   useEffect(() => {
     if (supabase) {
       fetchProducts();
-    } else {
-      console.warn('Supabase not configured – running in demo mode (no products loaded)');
     }
   }, []);
 
@@ -47,13 +44,13 @@ export default function Home() {
 
   async function checkout() {
     if (!stripePromise) {
-      alert('Stripe not configured yet – this is just a demo!');
+      alert('Stripe is not configured yet.');
       return;
     }
 
-    const stripe = await stripePromise as Stripe | null;
+    const stripe = (await stripePromise) as Stripe | null;
     if (!stripe) {
-      console.error('Stripe.js failed to load');
+      console.error('Stripe failed to load');
       return;
     }
 
@@ -104,7 +101,9 @@ export default function Home() {
       <section className="py-16 container mx-auto px-4">
         <h2 className="text-4xl font-bold text-center mb-12">Featured Creations</h2>
         {products.length === 0 ? (
-          <p className="text-center text-gray-600">No products yet – add some via /admin when Supabase is connected!</p>
+          <p className="text-center text-gray-600 text-lg">
+            No products available yet. Add some via <a href="/admin" className="text-purple-600 underline">/admin</a>!
+          </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {products.map((product) => (
@@ -135,12 +134,12 @@ export default function Home() {
       </section>
 
       {cart.length > 0 && (
-        <div className="fixed bottom-4 right-4 bg-white shadow-2xl p-6 rounded-lg">
+        <div className="fixed bottom-4 right-4 bg-white shadow-2xl p-6 rounded-lg z-50">
           <h3 className="text-2xl font-bold">Cart ({cart.length})</h3>
-          <p>Total: ${cart.reduce((sum, item) => sum + item.price, 0)}</p>
+          <p className="mt-2">Total: ${cart.reduce((sum, item) => sum + item.price, 0)}</p>
           <button
             onClick={checkout}
-            className="mt-4 bg-green-600 text-white px-8 py-4 rounded text-xl hover:bg-green-700"
+            className="mt-4 bg-green-600 text-white px-8 py-4 rounded text-xl hover:bg-green-700 w-full"
           >
             Checkout with Stripe
           </button>
