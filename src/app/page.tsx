@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { ShoppingCart, Printer, Sparkles } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { loadStripe } from '@stripe/stripe-js';
-import type { Stripe } from '@stripe/stripe-js';  // This line fixes the type error permanently
+import type { Stripe } from '@stripe/stripe-js';  // Critical fix: Import client-side type only
 
-// Safe Supabase client creation
+// Safe Supabase setup
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = supabaseUrl && supabaseAnonKey
@@ -31,9 +31,7 @@ export default function Home() {
   const [selected, setSelected] = useState<Product | null>(null);
 
   useEffect(() => {
-    if (supabase) {
-      fetchProducts();
-    }
+    if (supabase) fetchProducts();
   }, []);
 
   async function fetchProducts() {
@@ -44,29 +42,23 @@ export default function Home() {
 
   async function checkout() {
     if (!stripePromise) {
-      alert('Stripe is not configured yet.');
+      alert('Stripe not configured.');
       return;
     }
 
     const stripe = (await stripePromise) as Stripe | null;
-    if (!stripe) {
-      console.error('Stripe failed to load');
-      return;
-    }
+    if (!stripe) return;
 
     const response = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: cart }),
     });
-
     const session = await response.json();
 
     const result = await stripe.redirectToCheckout({ sessionId: session.id });
 
-    if (result.error) {
-      console.error('Stripe checkout error:', result.error.message);
-    }
+    if (result.error) console.error(result.error);
   }
 
   return (
@@ -95,6 +87,10 @@ export default function Home() {
             Bring Your Ideas to Life in 3D! <Sparkles className="inline w-12 h-12 text-yellow-400" />
           </h2>
           <p className="text-xl mb-8">Custom 3D printing services & unique creations by Sebastian</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+            <img src="https://images.squarespace-cdn.com/content/v1/51d98be2e4b05a25fc200cbc/08744c9e-f77e-4cc4-9eca-171069ee3f0a/960x0.jpeg" alt="3D printer in action" className="rounded-lg shadow-lg" />
+            <img src="https://education.cosmosmagazine.com/wp-content/uploads/2021/12/GettyImages-1065223632.jpg" alt="3D printing process" className="rounded-lg shadow-lg" />
+          </div>
         </div>
       </section>
 
@@ -102,28 +98,18 @@ export default function Home() {
         <h2 className="text-4xl font-bold text-center mb-12">Featured Creations</h2>
         {products.length === 0 ? (
           <p className="text-center text-gray-600 text-lg">
-            No products available yet. Add some via <a href="/admin" className="text-purple-600 underline">/admin</a>!
+            No products yet — add some via <a href="/admin" className="text-purple-600 underline">/admin</a>!
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer"
-                onClick={() => setSelected(product)}
-              >
+            {products.map(product => (
+              <div key={product.id} className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer" onClick={() => setSelected(product)}>
                 <img src={product.image_url} alt={product.name} className="w-full h-64 object-cover" />
                 <div className="p-6">
                   <h3 className="text-2xl font-semibold">{product.name}</h3>
                   <p className="text-gray-600 mt-2">{product.description}</p>
                   <p className="text-3xl font-bold mt-4">${product.price}</p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCart([...cart, product]);
-                    }}
-                    className="mt-4 bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700"
-                  >
+                  <button onClick={(e) => { e.stopPropagation(); setCart([...cart, product]); }} className="mt-4 bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700">
                     Add to Cart
                   </button>
                 </div>
@@ -136,11 +122,8 @@ export default function Home() {
       {cart.length > 0 && (
         <div className="fixed bottom-4 right-4 bg-white shadow-2xl p-6 rounded-lg z-50">
           <h3 className="text-2xl font-bold">Cart ({cart.length})</h3>
-          <p className="mt-2">Total: ${cart.reduce((sum, item) => sum + item.price, 0)}</p>
-          <button
-            onClick={checkout}
-            className="mt-4 bg-green-600 text-white px-8 py-4 rounded text-xl hover:bg-green-700 w-full"
-          >
+          <p>Total: ${cart.reduce((sum, item) => sum + item.price, 0)}</p>
+          <button onClick={checkout} className="mt-4 bg-green-600 text-white px-8 py-4 rounded text-xl hover:bg-green-700 w-full">
             Checkout with Stripe
           </button>
         </div>
@@ -148,6 +131,9 @@ export default function Home() {
 
       <footer className="bg-gray-900 text-white py-8 text-center">
         <p>Secure payments powered by Stripe</p>
+        <div className="flex justify-center gap-8 mt-4">
+          <img src="https://www.smiledental.co.nz/wp-content/uploads/2024/03/png-transparent-visa-mastercard-logo-visa-mastercard-computer-icons-visa-text-payment-logo.png" alt="Visa and Mastercard" className="h-12" />
+        </div>
         <p className="mt-4">© 2025 SebPrints Galaxy - All rights reserved</p>
       </footer>
     </>
