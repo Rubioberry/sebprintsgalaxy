@@ -1,11 +1,37 @@
 export default function Success() {
   return (
-    <div className="container mx-auto py-20 text-center">
-      <h1 className="text-5xl font-bold text-green-600 mb-8">Payment Successful! 🎉</h1>
-      <p className="text-xl mb-8">Thank you for your order. Sebastian will start 3D printing your items soon!</p>
-      <a href="/" className="bg-purple-600 text-white px-8 py-4 rounded text-xl hover:bg-purple-700">
-        Back to Store
-      </a>
+    <div className="relative min-h-screen bg-black text-white overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-black to-cyan-900/30"></div>
+      <div className="relative container mx-auto py-32 px-4 text-center">
+        <h1 className="text-7xl md:text-8xl font-extrabold mb-12 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+          Payment Successful! 🎉
+        </h1>
+        <p className="text-3xl md:text-4xl text-cyan-300 mb-8">
+          Thank you for your order!
+        </p>
+        <p className="text-xl md:text-2xl text-gray-300 mb-16 max-w-3xl mx-auto">
+          Sebastian will begin 3D printing your cosmic creations very soon.<br />
+          You’ll receive an email confirmation and tracking updates shortly.
+        </p>
+        <a
+          href="/"
+          className="inline-block px-12 py-6 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl text-3xl font-bold hover:from-purple-600 hover:to-cyan-500 shadow-2xl shadow-cyan-500/50 hover:shadow-purple-500/70 transition-all duration-500"
+        >
+          Back to SebPrints Galaxy
+        </a>
+      </div>
+
+      <style jsx>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 6s ease infinite;
+        }
+      `}</style>
     </div>
   );
 }
