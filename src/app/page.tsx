@@ -3,11 +3,20 @@
 import { useState, useEffect } from 'react';
 import { ShoppingCart, Printer, Sparkles } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import type { Stripe } from '@stripe/stripe-js';  // Import the TYPE ONLY from client package
+import type { Stripe } from '@stripe/stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Safely create Supabase client – fallback if env vars missing (for local testing)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;  // null = no database calls, but app won't crash
+
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 interface Product {
   id: number;
@@ -23,17 +32,26 @@ export default function Home() {
   const [selected, setSelected] = useState<Product | null>(null);
 
   useEffect(() => {
-    fetchProducts();
+    if (supabase) {
+      fetchProducts();
+    } else {
+      console.warn('Supabase not configured – running in demo mode (no products loaded)');
+    }
   }, []);
 
   async function fetchProducts() {
+    if (!supabase) return;
     const { data } = await supabase.from('products').select('*').eq('published', true);
     setProducts(data || []);
   }
 
   async function checkout() {
-    const stripe = await stripePromise as Stripe | null;
+    if (!stripePromise) {
+      alert('Stripe not configured yet – this is just a demo!');
+      return;
+    }
 
+    const stripe = await stripePromise as Stripe | null;
     if (!stripe) {
       console.error('Stripe.js failed to load');
       return;
@@ -51,7 +69,6 @@ export default function Home() {
 
     if (result.error) {
       console.error('Stripe checkout error:', result.error.message);
-      // You can show a toast/alert to the user here later
     }
   }
 
@@ -86,31 +103,35 @@ export default function Home() {
 
       <section className="py-16 container mx-auto px-4">
         <h2 className="text-4xl font-bold text-center mb-12">Featured Creations</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer"
-              onClick={() => setSelected(product)}
-            >
-              <img src={product.image_url} alt={product.name} className="w-full h-64 object-cover" />
-              <div className="p-6">
-                <h3 className="text-2xl font-semibold">{product.name}</h3>
-                <p className="text-gray-600 mt-2">{product.description}</p>
-                <p className="text-3xl font-bold mt-4">${product.price}</p>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCart([...cart, product]);
-                  }}
-                  className="mt-4 bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700"
-                >
-                  Add to Cart
-                </button>
+        {products.length === 0 ? (
+          <p className="text-center text-gray-600">No products yet – add some via /admin when Supabase is connected!</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer"
+                onClick={() => setSelected(product)}
+              >
+                <img src={product.image_url} alt={product.name} className="w-full h-64 object-cover" />
+                <div className="p-6">
+                  <h3 className="text-2xl font-semibold">{product.name}</h3>
+                  <p className="text-gray-600 mt-2">{product.description}</p>
+                  <p className="text-3xl font-bold mt-4">${product.price}</p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCart([...cart, product]);
+                    }}
+                    className="mt-4 bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700"
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {cart.length > 0 && (
