@@ -55,17 +55,39 @@ export default function Home() {
   }
 
   return (
-    <>
-      {/* Futuristic Header with Neon Glow */}
-      <header className="relative overflow-hidden bg-black text-white py-8 border-b-4 border-cyan-400 shadow-2xl shadow-cyan-500/50">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900 via-black to-cyan-900 opacity-70"></div>
-        <div className="relative container mx-auto px-4 flex justify-between items-center">
-          <h1 className="text-5xl font-bold flex items-center gap-4 tracking-wider">
-            <Printer className="w-12 h-12 text-cyan-400 animate-pulse" />
-            <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-              SebPrints Galaxy
-            </span>
-          </h1>
+    <div className="relative min-h-screen">
+      {/* Full-page looping background video */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover z-0"
+      >
+        <source src="/videos/body-background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      {/* Dark overlay for text readability */}
+      <div className="fixed inset-0 bg-black/60 z-10"></div>
+
+      {/* Header with looping banner video instead of text title */}
+      <header className="relative z-20 py-6 md:py-8">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          {/* Header banner video replaces title text */}
+          <div className="w-64 md:w-96">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full h-auto rounded-lg shadow-2xl shadow-purple-500/50"
+            >
+              <source src="/videos/header-banner.mp4" type="video/mp4" />
+            </video>
+          </div>
+
+          {/* Cart button */}
           <button className="relative p-4 rounded-full bg-cyan-500/20 backdrop-blur-md border border-cyan-400 shadow-lg shadow-cyan-400/50 hover:shadow-cyan-400/80 transition">
             <ShoppingCart className="w-10 h-10 text-cyan-300" />
             {cart.length > 0 && (
@@ -77,54 +99,54 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section - Holographic Tech Feel */}
-      <section className="relative bg-black py-32 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/30 via-black to-cyan-900/30"></div>
-        <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-        <div className="relative container mx-auto px-4">
-          <h2 className="text-6xl md:text-7xl font-extrabold mb-8 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+      {/* Hero Section */}
+      <section className="relative z-20 py-20 md:py-32 text-center">
+        <div className="container mx-auto px-4">
+          <h2 className="text-5xl md:text-7xl font-extrabold mb-8 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
             Bring Your Ideas to Life in 3D!
-            <Sparkles className="inline ml-4 w-16 h-16 text-yellow-400 animate-spin-slow" />
+            <Sparkles className="inline ml-4 w-12 h-12 md:w-16 md:h-16 text-yellow-400 animate-spin-slow" />
           </h2>
-          <p className="text-2xl text-cyan-300 mb-12 tracking-wide">
+          <p className="text-xl md:text-2xl text-cyan-300 tracking-wide">
             Custom 3D printing services & unique creations by Sebastian
           </p>
         </div>
       </section>
 
-      {/* Featured Creations - Glassmorphism Cards with Neon Glow */}
-      <section className="py-24 container mx-auto px-4">
-        <h2 className="text-5xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+      {/* Featured Creations – Fully responsive mobile-first grid */}
+      <section className="relative z-20 py-12 md:py-20 container mx-auto px-6 md:px-4">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
           Featured Creations
         </h2>
+
         {products.length === 0 ? (
-          <p className="text-center text-gray-400 text-xl">
+          <p className="text-center text-gray-300 text-lg">
             No products yet — add some via <a href="/admin" className="text-cyan-400 underline hover:text-purple-400">/admin</a>!
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
             {products.map((product) => (
               <div
                 key={product.id}
-                className="group relative bg-black/40 backdrop-blur-xl border border-cyan-500/30 rounded-2xl overflow-hidden shadow-2xl hover:shadow-cyan-500/50 hover:border-purple-500/50 transition-all duration-500"
+                className="group relative bg-black/50 backdrop-blur-xl border border-cyan-500/40 rounded-2xl overflow-hidden shadow-2xl hover:shadow-cyan-500/70 hover:border-purple-500/60 transition-all duration-500"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition"></div>
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="relative p-8">
-                  <h3 className="text-3xl font-bold text-cyan-300 mb-4 group-hover:text-purple-300 transition">
+                <div className="aspect-w-1 aspect-h-1 overflow-hidden">
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-full h-64 md:h-80 object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                </div>
+                <div className="p-6 md:p-8">
+                  <h3 className="text-2xl md:text-3xl font-bold text-cyan-300 mb-3 group-hover:text-purple-300 transition">
                     {product.name}
                   </h3>
-                  <p className="text-gray-300 mb-6">{product.description}</p>
-                  <p className="text-4xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text mb-8">
+                  <p className="text-gray-300 mb-6 text-sm md:text-base">{product.description}</p>
+                  <p className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-6">
                     ${product.price.toFixed(2)}
                   </p>
                   <button
                     onClick={() => setCart([...cart, product])}
-                    className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl font-bold text-xl hover:from-purple-600 hover:to-cyan-500 shadow-lg hover:shadow-purple-500/50 transition-all"
+                    className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl font-bold text-lg md:text-xl hover:from-purple-600 hover:to-cyan-500 shadow-lg hover:shadow-purple-500/50 transition-all"
                   >
                     Add to Cart
                   </button>
@@ -135,28 +157,31 @@ export default function Home() {
         )}
       </section>
 
-      {/* Floating Cart - High-Tech Panel */}
+      {/* Mobile-friendly floating cart */}
       {cart.length > 0 && (
-        <div className="fixed bottom-8 right-8 bg-black/80 backdrop-blur-2xl border border-cyan-400/50 rounded-2xl p-8 shadow-2xl shadow-cyan-500/60 z-50 max-w-md w-full animate-float">
-          <h3 className="text-3xl font-bold text-cyan-300 mb-4">Cart ({cart.length})</h3>
-          <p className="text-2xl text-purple-300 mb-6">
-            Total: ${cart.reduce((sum, item) => sum + item.price, 0).toFixed(2)}
-          </p>
-          <button
-            onClick={checkout}
-            className="w-full py-5 bg-gradient-to-r from-green-500 to-cyan-500 rounded-xl font-bold text-2xl hover:from-cyan-500 hover:to-green-500 shadow-lg hover:shadow-green-500/70 transition-all"
-          >
-            Checkout with Stripe
-          </button>
+        <div className="fixed bottom-4 left-4 right-4 md:bottom-8 md:right-8 md:left-auto md:max-w-sm z-50">
+          <div className="bg-black/80 backdrop-blur-2xl border border-cyan-400/50 rounded-2xl p-6 shadow-2xl shadow-cyan-500/60 animate-float">
+            <h3 className="text-2xl md:text-3xl font-bold text-cyan-300 mb-3">Cart ({cart.length})</h3>
+            <p className="text-xl md:text-2xl text-purple-300 mb-6">
+              Total: ${cart.reduce((sum, item) => sum + item.price, 0).toFixed(2)}
+            </p>
+            <button
+              onClick={checkout}
+              className="w-full py-4 bg-gradient-to-r from-green-500 to-cyan-500 rounded-xl font-bold text-xl md:text-2xl hover:from-cyan-500 hover:to-green-500 shadow-lg hover:shadow-green-500/70 transition-all"
+            >
+              Checkout with Stripe
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Footer - Minimal Neon */}
-      <footer className="bg-black border-t-2 border-cyan-500/50 py-12 text-center">
+      {/* Minimal footer */}
+      <footer className="relative z-20 bg-black/80 backdrop-blur-md border-t-2 border-cyan-500/30 py-8 text-center mt-20">
         <p className="text-cyan-400 text-lg">Secure payments powered by Stripe</p>
         <p className="text-gray-500 mt-4">© 2025 SebPrints Galaxy - All rights reserved</p>
       </footer>
 
+      {/* Custom animations */}
       <style jsx>{`
         @keyframes gradient {
           0% { background-position: 0% 50%; }
@@ -177,11 +202,7 @@ export default function Home() {
           50% { transform: translateY(-10px); }
         }
         .animate-float { animation: float 6s ease-in-out infinite; }
-        .bg-grid-pattern {
-          background-image: linear-gradient(cyan 1px, transparent 1px), linear-gradient(90deg, cyan 1px, transparent 1px);
-          background-size: 50px 50px;
-        }
       `}</style>
-    </>
+    </div>
   );
 }
