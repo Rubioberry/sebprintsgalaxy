@@ -3,11 +3,9 @@
 import { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Safely get env vars
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Create client only if env vars exist (otherwise null for demo mode)
 const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
@@ -16,53 +14,73 @@ export default function Admin() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [squareLink, setSquareLink] = useState('');  // ← Added this line!
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>('');
 
   async function uploadProduct(e: React.FormEvent) {
     e.preventDefault();
+    setStatus('');
 
     if (!supabase) {
-      setStatus('⚠️ Supabase not configured – add env vars to .env.local and restart server to upload real products.');
+      setStatus('⚠️ Supabase not configured – check .env.local and restart server.');
       return;
     }
 
     if (!file) {
-      setStatus('Please select an image');
+      setStatus('Please select an image file.');
       return;
     }
 
-    // Upload image to storage
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    if (!name || !description || !price || !squareLink) {
+      setStatus('Please fill in all fields, including the Square link.');
+      return;
+    }
+
+    setStatus('Uploading image...');
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
+    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    const filePath = `public/${fileName}`;
+
     const { error: uploadError } = await supabase.storage
       .from('products')
-      .upload(`public/${fileName}`, file);
+      .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
     if (uploadError) {
       setStatus(`Upload error: ${uploadError.message}`);
+      console.error(uploadError);
       return;
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage.from('products').getPublicUrl(`public/${fileName}`);
+    setStatus('Image uploaded – saving product...');
 
-    // Insert product row
-    const { error: dbError } = await supabase.from('products').insert({
-      name,
-      description,
-      price: Number(price),
-      image_url: urlData.publicUrl,
-      published: true,
-    });
+    const { data: publicUrlData } = supabase.storage
+      .from('products')
+      .getPublicUrl(filePath);
+
+    const image_url = publicUrlData.publicUrl;
+
+    const { error: dbError } = await supabase
+      .from('products')
+      .insert({
+        name,
+        description,
+        price: Number(price),
+        image_url,
+        square_link: squareLink,  // ← Now saved correctly
+        published: true,
+      });
 
     if (dbError) {
       setStatus(`Database error: ${dbError.message}`);
+      console.error(dbError);
     } else {
       setStatus('✅ Product published successfully!');
       setName('');
       setDescription('');
       setPrice('');
+      setSquareLink('');
       setFile(null);
     }
   }
@@ -74,21 +92,21 @@ export default function Admin() {
       {!supabase && (
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-4 rounded mb-8">
           <p className="font-semibold">Demo Mode Active</p>
-          <p>No Supabase config detected. Fill in .env.local with your keys and restart <code className="bg-yellow-200 px-2">npm run dev</code> to enable real uploads.</p>
+          <p>Add Supabase keys to .env.local and restart npm run dev to enable uploads.</p>
         </div>
       )}
 
       <form onSubmit={uploadProduct} className="space-y-6 bg-white shadow-lg rounded-lg p-8">
         <input
           type="text"
-          placeholder="Product Name (e.g. Cosmic Rocket Model)"
+          placeholder="Product Name (e.g. Articulated Dragon)"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
           required
         />
         <textarea
-          placeholder="Description (e.g. Hand-crafted 3D printed rocket with glowing details)"
+          placeholder="Description (e.g. Fully poseable 3D printed dragon – perfect for display!)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full p-4 border border-gray-300 rounded-lg h-32 focus:outline-none focus:ring-2 focus:ring-purple-600"
@@ -97,9 +115,17 @@ export default function Admin() {
         <input
           type="number"
           step="0.01"
-          placeholder="Price in USD (e.g. 49.99)"
+          placeholder="Price in AUD (e.g. 59.99)"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
+          className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+          required
+        />
+        <input
+          type="url"
+          placeholder="Square Checkout Link (e.g. https://square.link/u/Q7ZmyBq8)"
+          value={squareLink}
+          onChange={(e) => setSquareLink(e.target.value)}
           className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
           required
         />
@@ -119,7 +145,11 @@ export default function Admin() {
       </form>
 
       {status && (
-        <div className={`mt-8 p-6 rounded-lg text-center text-lg font-medium ${status.startsWith('✅') ? 'bg-green-100 text-green-800' : status.startsWith('⚠️') ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+        <div className={`mt-8 p-6 rounded-lg text-center text-lg font-medium ${
+          status.startsWith('✅') ? 'bg-green-100 text-green-800' :
+          status.startsWith('⚠️') ? 'bg-yellow-100 text-yellow-800' :
+          'bg-red-100 text-red-800'
+        }`}>
           {status}
         </div>
       )}
